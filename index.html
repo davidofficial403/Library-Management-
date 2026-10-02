@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Library Desk – Library Management</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+
+    <!-- Sidebar -->
+    <aside class="side">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <div>
+          <strong>Library Desk</strong>
+          <small>Management</small>
+        </div>
+      </div>
+
+      <nav class="nav" aria-label="Main">
+        <button class="nav-btn active" data-view="dashboard" aria-current="page">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h7v7H4zM13 4h7v4h-7zM13 10h7v10h-7zM4 13h7v7H4z"/></svg>
+          Dashboard
+        </button>
+        <button class="nav-btn" data-view="books">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h10a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM8 20a3 3 0 0 1-3-3"/></svg>
+          Books
+        </button>
+        <button class="nav-btn" data-view="members">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.8a3.5 3.5 0 0 1 0 6.4M18 14a6 6 0 0 1 3.5 6"/></svg>
+          Members
+        </button>
+        <button class="nav-btn" data-view="loans">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h14l-3-3M20 16H6l3 3"/></svg>
+          Issue &amp; return
+          <span class="nav-badge" id="navOverdue" hidden>0</span>
+        </button>
+      </nav>
+
+      <div class="side-foot">
+        <button class="link-btn" id="resetDemo">Reset demo data</button>
+        <p>Everything is saved in this browser only.</p>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+      <header class="top">
+        <h1 id="viewTitle">Dashboard</h1>
+        <p class="today" id="todayLabel"></p>
+      </header>
+
+      <!-- Dashboard -->
+      <section class="view" id="view-dashboard">
+        <div class="ledger">
+          <div class="stat"><span class="num" id="st-titles">0</span><span class="lbl">Titles in catalogue</span></div>
+          <div class="stat"><span class="num" id="st-shelf">0</span><span class="lbl">Copies on the shelf</span></div>
+          <div class="stat"><span class="num" id="st-out">0</span><span class="lbl">Copies on loan</span></div>
+          <div class="stat" id="stat-overdue"><span class="num" id="st-overdue">0</span><span class="lbl">Overdue loans</span></div>
+        </div>
+
+        <div class="block">
+          <div class="block-head">
+            <h2>The shelf</h2>
+            <p class="muted">Select a spine to open it in Books. Faded spines are fully issued.</p>
+          </div>
+          <div class="shelf" id="shelf"></div>
+        </div>
+
+        <div class="two-col">
+          <div class="block">
+            <div class="block-head"><h2>Needs attention</h2></div>
+            <ul class="feed" id="attentionList"></ul>
+          </div>
+          <div class="block">
+            <div class="block-head"><h2>Recent activity</h2></div>
+            <ul class="feed" id="activityList"></ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Books -->
+      <section class="view" id="view-books" hidden>
+        <div class="toolbar">
+          <div class="field grow">
+            <label for="bookSearch">Search</label>
+            <input type="search" id="bookSearch" placeholder="Title, author or ISBN">
+          </div>
+          <div class="field">
+            <label for="bookCat">Category</label>
+            <select id="bookCat"></select>
+          </div>
+          <div class="field">
+            <label for="bookAvail">Availability</label>
+            <select id="bookAvail">
+              <option value="all">All books</option>
+              <option value="yes">Available now</option>
+              <option value="no">All copies issued</option>
+            </select>
+          </div>
+          <button class="btn primary" id="addBook">Add book</button>
+        </div>
+        <p class="count" id="bookCount" aria-live="polite"></p>
+        <div class="book-grid" id="bookGrid"></div>
+      </section>
+
+      <!-- Members -->
+      <section class="view" id="view-members" hidden>
+        <div class="toolbar">
+          <div class="field grow">
+            <label for="memberSearch">Search</label>
+            <input type="search" id="memberSearch" placeholder="Name, email or phone">
+          </div>
+          <button class="btn primary" id="addMember">Add member</button>
+        </div>
+        <p class="count" id="memberCount" aria-live="polite"></p>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Member</th><th>Phone</th><th>Joined</th><th>Books out</th><th class="r">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="memberRows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Issue & return -->
+      <section class="view" id="view-loans" hidden>
+        <div class="loans-layout">
+          <form class="issue-card" id="issueForm" novalidate>
+            <h2>Issue a book</h2>
+            <div class="field">
+              <label for="issueMember">Member</label>
+              <select id="issueMember"></select>
+            </div>
+            <div class="field">
+              <label for="issueBook">Book</label>
+              <select id="issueBook"></select>
+            </div>
+            <div class="field">
+              <label for="issueDue">Due date</label>
+              <input type="date" id="issueDue">
+            </div>
+            <p class="form-error" id="issueError" role="alert" hidden></p>
+            <button type="submit" class="btn primary block-btn">Issue book</button>
+            <p class="hint">Late returns are charged ₹2 per day.</p>
+          </form>
+
+          <div class="loans-list">
+            <div class="toolbar">
+              <div class="tabs" role="tablist" aria-label="Loan list">
+                <button class="tab active" role="tab" aria-selected="true" data-tab="active">On loan</button>
+                <button class="tab" role="tab" aria-selected="false" data-tab="history">Returned</button>
+              </div>
+              <div class="field grow">
+                <label for="loanSearch">Search</label>
+                <input type="search" id="loanSearch" placeholder="Book or member">
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Book</th><th>Member</th><th>Issued</th><th>Due</th><th>Status</th><th class="r">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="loanRows"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Book dialog -->
+  <dialog id="bookDialog" aria-labelledby="bookDialogTitle">
+    <form id="bookForm" novalidate>
+      <h2 id="bookDialogTitle">Add book</h2>
+      <input type="hidden" id="bookId">
+      <div class="field">
+        <label for="bTitle">Title</label>
+        <input type="text" id="bTitle" required>
+      </div>
+      <div class="field">
+        <label for="bAuthor">Author</label>
+        <input type="text" id="bAuthor" required>
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label for="bCategory">Category</label>
+          <select id="bCategory"></select>
+        </div>
+        <div class="field">
+          <label for="bCopies">Copies</label>
+          <input type="number" id="bCopies" min="1" value="1">
+        </div>
+        <div class="field">
+          <label for="bYear">Year published</label>
+          <input type="number" id="bYear" min="1000" max="2100" placeholder="e.g. 2011">
+        </div>
+        <div class="field">
+          <label for="bIsbn">ISBN (optional)</label>
+          <input type="text" id="bIsbn">
+        </div>
+      </div>
+      <p class="form-error" id="bookError" role="alert" hidden></p>
+      <div class="dialog-actions">
+        <button type="button" class="btn ghost" data-close>Cancel</button>
+        <button type="submit" class="btn primary" id="bookSubmit">Save book</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Member dialog -->
+  <dialog id="memberDialog" aria-labelledby="memberDialogTitle">
+    <form id="memberForm" novalidate>
+      <h2 id="memberDialogTitle">Add member</h2>
+      <input type="hidden" id="memberId">
+      <div class="field">
+        <label for="mName">Full name</label>
+        <input type="text" id="mName" required>
+      </div>
+      <div class="field">
+        <label for="mEmail">Email</label>
+        <input type="email" id="mEmail" required>
+      </div>
+      <div class="field">
+        <label for="mPhone">Phone</label>
+        <input type="tel" id="mPhone" placeholder="10-digit mobile number">
+      </div>
+      <p class="form-error" id="memberError" role="alert" hidden></p>
+      <div class="dialog-actions">
+        <button type="button" class="btn ghost" data-close>Cancel</button>
+        <button type="submit" class="btn primary" id="memberSubmit">Save member</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Confirm dialog -->
+  <dialog id="confirmDialog" aria-labelledby="confirmTitle">
+    <form method="dialog" id="confirmForm">
+      <h2 id="confirmTitle">Are you sure?</h2>
+      <p id="confirmText"></p>
+      <div class="dialog-actions">
+        <button type="button" class="btn ghost" data-close>Cancel</button>
+        <button type="button" class="btn danger" id="confirmOk">Confirm</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script>window.jQuery || document.write('<script src="lib/jquery.min.js"><\/script>')</script>
+  <script src="script.js"></script>
+</body>
+</html>
